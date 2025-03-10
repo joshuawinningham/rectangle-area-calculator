@@ -29,4 +29,7 @@ Run:
 ```
 python app.py
 ```
-Then open your web browser to the displayed URL. 
+Then open your web browser to the displayed URL.
+
+## Deployment
+This project is deployed on Vercel: [Rectangle Area Calculator](https://rectangle-area-calculator.vercel.app) 
