@@ -31,7 +31,8 @@
       margin-bottom: 5px;
     }
 
-    input[type="number"] {
+    input[type="number"],
+    input[type="email"] {
       width: 100%;
       padding: 8px;
       border: 1px solid #ddd;
@@ -58,6 +59,15 @@
       background-color: #e8f5e9;
       border-radius: 4px;
     }
+
+    canvas {
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      background-color: white;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
   </style>
 </head>
 
@@ -75,8 +85,19 @@
         <input type="number" id="width" name="width"
           step="any" required>
       </div>
+      <div class="form-group">
+        <label for="email">Email (optional):</label>
+        <input type="email" id="email" name="email"
+          placeholder="Enter your email to receive the result">
+      </div>
       <button type="submit">Calculate Area</button>
     </form>
+
+    {% if email_sent %}
+    <div class="result">
+      <p>Result has been sent to your email!</p>
+    </div>
+    {% endif %}
 
     {% if area is not none %}
     <div class="result">
@@ -84,7 +105,91 @@
       <p>With length {{ length }} and width {{ width }}</p>
       <p>The area of the rectangle is: {{ area }} square
         units</p>
+      <canvas id="rectangleCanvas" width="400"
+        height="300"></canvas>
     </div>
+    <script>
+      function drawRectangle() {
+        const canvas = document.getElementById('rectangleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        // Get dimensions from Flask template variables
+        const length = parseFloat("{{ length }}");
+        const width = parseFloat("{{ width }}");
+
+        // Clear canvas
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Calculate scaling to fit the canvas while maintaining aspect ratio
+        const padding = 40;
+        const maxSize = Math.min(canvas.width - padding * 2, canvas.height - padding * 2);
+        const scale = maxSize / Math.max(length, width);
+
+        // Calculate scaled dimensions
+        const scaledLength = length * scale;
+        const scaledWidth = width * scale;
+
+        // Calculate position to center the rectangle
+        const x = (canvas.width - scaledLength) / 2;
+        const y = (canvas.height - scaledWidth) / 2;
+
+        // Draw unit squares with alternating colors
+        const unitSize = scale; // Size of each unit square
+        for (let i = 0; i < width; i++) {
+          for (let j = 0; j < length; j++) {
+            ctx.fillStyle = (i + j) % 2 === 0 ? '#e8f5e9' : '#c8e6c9';
+            ctx.fillRect(
+              x + j * unitSize,
+              y + i * unitSize,
+              unitSize,
+              unitSize
+            );
+          }
+        }
+
+        // Draw rectangle border
+        ctx.beginPath();
+        ctx.strokeStyle = '#4CAF50';
+        ctx.lineWidth = 2;
+        ctx.rect(x, y, scaledLength, scaledWidth);
+        ctx.stroke();
+
+        // Add dimension labels
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#333';
+
+        // Length label
+        ctx.fillText(`Length: ${length}`, x + scaledLength / 2 - 40, y + scaledWidth + 20);
+
+        // Width label (rotated)
+        ctx.save();
+        ctx.translate(x - 20, y + scaledWidth / 2);
+        ctx.rotate(-Math.PI / 2);
+        ctx.fillText(`Width: ${width}`, 0, 0);
+        ctx.restore();
+
+        // Draw grid lines
+        ctx.beginPath();
+        ctx.strokeStyle = '#81c784';
+        ctx.lineWidth = 0.5;
+
+        // Vertical grid lines
+        for (let i = 1; i < length; i++) {
+          ctx.moveTo(x + i * unitSize, y);
+          ctx.lineTo(x + i * unitSize, y + scaledWidth);
+        }
+
+        // Horizontal grid lines
+        for (let i = 1; i < width; i++) {
+          ctx.moveTo(x, y + i * unitSize);
+          ctx.lineTo(x + scaledLength, y + i * unitSize);
+        }
+        ctx.stroke();
+      }
+
+      // Draw rectangle when page loads
+      window.onload = drawRectangle;
+    </script>
     {% endif %}
   </div>
 </body>
