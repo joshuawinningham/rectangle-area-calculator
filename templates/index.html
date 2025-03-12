@@ -6,191 +6,208 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0">
   <title>Rectangle Area Calculator</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 600px;
-      margin: 0 auto;
-      padding: 20px;
-      background-color: #f0f0f0;
-    }
-
-    .calculator {
-      background-color: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .form-group {
-      margin-bottom: 15px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 5px;
-    }
-
-    input[type="number"],
-    input[type="email"] {
-      width: 100%;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      box-sizing: border-box;
-    }
-
-    button {
-      background-color: #4CAF50;
-      color: white;
-      padding: 10px 15px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background-color: #45a049;
-    }
-
-    .result {
-      margin-top: 20px;
-      padding: 15px;
-      background-color: #e8f5e9;
-      border-radius: 4px;
-    }
-
-    canvas {
-      margin-top: 20px;
-      border: 1px solid #ddd;
-      background-color: white;
-      display: block;
-      margin-left: auto;
-      margin-right: auto;
-    }
-  </style>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body>
-  <div class="calculator">
-    <h1>Rectangle Area Calculator</h1>
-    <form method="POST">
-      <div class="form-group">
-        <label for="length">Length:</label>
-        <input type="number" id="length" name="length"
-          step="any" required>
-      </div>
-      <div class="form-group">
-        <label for="width">Width:</label>
-        <input type="number" id="width" name="width"
-          step="any" required>
-      </div>
-      <div class="form-group">
-        <label for="email">Email (optional):</label>
-        <input type="email" id="email" name="email"
-          placeholder="Enter your email to receive the result">
-      </div>
-      <button type="submit">Calculate Area</button>
-    </form>
-
-    {% if email_sent %}
-    <div class="result">
-      <p>Result has been sent to your email!</p>
+<body
+  class="bg-gray-100 min-h-screen flex justify-center p-4 pt-16">
+  <div
+    class="bg-white rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+    <!-- Header -->
+    <div class="bg-indigo-600 text-white p-6">
+      <h1 class="text-2xl font-semibold">Rectangle Area
+        Calculator</h1>
     </div>
-    {% endif %}
 
-    {% if area is not none %}
-    <div class="result">
-      <h2>Result:</h2>
-      <p>With length {{ length }} and width {{ width }}</p>
-      <p>The area of the rectangle is: {{ area }} square
-        units</p>
-      <canvas id="rectangleCanvas" width="400"
-        height="300"></canvas>
-    </div>
-    <script>
-      function drawRectangle() {
-        const canvas = document.getElementById('rectangleCanvas');
-        const ctx = canvas.getContext('2d');
+    <!-- Calculator Form -->
+    <div class="p-6">
+      <form method="POST" id="calculatorForm"
+        class="space-y-6">
+        <div class="grid grid-cols-2 gap-4">
+          <!-- Length Input -->
+          <div>
+            <label for="length"
+              class="block text-gray-700 font-medium mb-2">Length</label>
+            <input type="number" id="length" name="length"
+              step="any" required
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          </div>
+          <!-- Width Input -->
+          <div>
+            <label for="width"
+              class="block text-gray-700 font-medium mb-2">Width</label>
+            <input type="number" id="width" name="width"
+              step="any" required
+              class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+          </div>
+        </div>
 
-        // Get dimensions from Flask template variables
-        const length = parseFloat("{{ length }}");
-        const width = parseFloat("{{ width }}");
+        <!-- Email Input -->
+        <div>
+          <label for="email"
+            class="block text-gray-700 font-medium mb-2">Email
+            (optional)</label>
+          <input type="email" id="email" name="email"
+            placeholder="Enter your email to receive the result"
+            class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+        </div>
 
-        // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        <!-- Buttons -->
+        <div class="grid grid-cols-2 gap-4">
+          <button type="submit"
+            class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            Calculate
+          </button>
+          <button type="button" id="resetButton"
+            class="w-full bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+            Reset
+          </button>
+        </div>
+      </form>
 
-        // Calculate scaling to fit the canvas while maintaining aspect ratio
-        const padding = 40;
-        const maxSize = Math.min(canvas.width - padding * 2, canvas.height - padding * 2);
-        const scale = maxSize / Math.max(length, width);
+      {% if email_sent %}
+      <div id="emailNotification"
+        class="mt-6 p-4 bg-green-100 text-green-700 rounded-lg">
+        <p>Result has been sent to your email!</p>
+      </div>
+      {% endif %}
 
-        // Calculate scaled dimensions
-        const scaledLength = length * scale;
-        const scaledWidth = width * scale;
+      {% if area is not none %}
+      <div id="results" class="mt-6 space-y-4">
+        <div
+          class="p-4 bg-green-100 text-green-700 rounded-lg">
+          <h2 class="font-semibold mb-2">Result:</h2>
+          <p>With length {{ length }} and width {{ width }}
+          </p>
+          <p>The area of the rectangle is: {{ area }} square
+            units</p>
+        </div>
 
-        // Calculate position to center the rectangle
-        const x = (canvas.width - scaledLength) / 2;
-        const y = (canvas.height - scaledWidth) / 2;
+        <!-- Visual Representation -->
+        <div class="mt-4">
+          <h3 class="text-gray-700 font-medium mb-2">Visual
+            Representation:</h3>
+          <canvas id="rectangleCanvas"
+            class="w-full border rounded-lg bg-white"></canvas>
+        </div>
+      </div>
 
-        // Draw unit squares with alternating colors
-        const unitSize = scale; // Size of each unit square
-        for (let i = 0; i < width; i++) {
-          for (let j = 0; j < length; j++) {
-            ctx.fillStyle = (i + j) % 2 === 0 ? '#e8f5e9' : '#c8e6c9';
-            ctx.fillRect(
-              x + j * unitSize,
-              y + i * unitSize,
-              unitSize,
-              unitSize
-            );
+      <script>
+        // Handle reset button click
+        document.getElementById('resetButton').addEventListener('click', function () {
+          // Reset form inputs
+          document.getElementById('calculatorForm').reset();
+
+          // Hide results if they exist
+          const results = document.getElementById('results');
+          if (results) {
+            results.style.display = 'none';
           }
+
+          // Hide email notification if it exists
+          const emailNotification = document.getElementById('emailNotification');
+          if (emailNotification) {
+            emailNotification.style.display = 'none';
+          }
+
+          // Clear canvas if it exists
+          const canvas = document.getElementById('rectangleCanvas');
+          if (canvas) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+          }
+
+          // Redirect to home page to clear server-side rendered results
+          window.location.href = '/';
+        });
+
+        function drawRectangle() {
+          const canvas = document.getElementById('rectangleCanvas');
+          canvas.height = 300; // Set fixed height
+          const ctx = canvas.getContext('2d');
+
+          // Get dimensions from Flask template variables
+          const length = parseFloat("{{ length }}");
+          const width = parseFloat("{{ width }}");
+
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          // Calculate scaling to fit the canvas while maintaining aspect ratio
+          const padding = 40;
+          const maxSize = Math.min(canvas.width - padding * 2, canvas.height - padding * 2);
+          const scale = maxSize / Math.max(length, width);
+
+          // Calculate scaled dimensions
+          const scaledLength = length * scale;
+          const scaledWidth = width * scale;
+
+          // Calculate position to center the rectangle
+          const x = (canvas.width - scaledLength) / 2;
+          const y = (canvas.height - scaledWidth) / 2;
+
+          // Draw unit squares with alternating colors
+          const unitSize = scale;
+          for (let i = 0; i < width; i++) {
+            for (let j = 0; j < length; j++) {
+              ctx.fillStyle = (i + j) % 2 === 0 ? '#e8f5e9' : '#c8e6c9';
+              ctx.fillRect(x + j * unitSize, y + i * unitSize, unitSize, unitSize);
+            }
+          }
+
+          // Draw rectangle border
+          ctx.beginPath();
+          ctx.strokeStyle = '#4CAF50';
+          ctx.lineWidth = 2;
+          ctx.rect(x, y, scaledLength, scaledWidth);
+          ctx.stroke();
+
+          // Add dimension labels
+          ctx.font = '14px Arial';
+          ctx.fillStyle = '#333';
+
+          // Length label
+          ctx.fillText(`Length: ${length}`, x + scaledLength / 2 - 40, y + scaledWidth + 20);
+
+          // Width label (rotated)
+          ctx.save();
+          ctx.translate(x - 20, y + scaledWidth / 2);
+          ctx.rotate(-Math.PI / 2);
+          ctx.fillText(`Width: ${width}`, 0, 0);
+          ctx.restore();
+
+          // Draw grid lines
+          ctx.beginPath();
+          ctx.strokeStyle = '#81c784';
+          ctx.lineWidth = 0.5;
+
+          // Vertical grid lines
+          for (let i = 1; i < length; i++) {
+            ctx.moveTo(x + i * unitSize, y);
+            ctx.lineTo(x + i * unitSize, y + scaledWidth);
+          }
+
+          // Horizontal grid lines
+          for (let i = 1; i < width; i++) {
+            ctx.moveTo(x, y + i * unitSize);
+            ctx.lineTo(x + scaledLength, y + i * unitSize);
+          }
+          ctx.stroke();
         }
 
-        // Draw rectangle border
-        ctx.beginPath();
-        ctx.strokeStyle = '#4CAF50';
-        ctx.lineWidth = 2;
-        ctx.rect(x, y, scaledLength, scaledWidth);
-        ctx.stroke();
-
-        // Add dimension labels
-        ctx.font = '14px Arial';
-        ctx.fillStyle = '#333';
-
-        // Length label
-        ctx.fillText(`Length: ${length}`, x + scaledLength / 2 - 40, y + scaledWidth + 20);
-
-        // Width label (rotated)
-        ctx.save();
-        ctx.translate(x - 20, y + scaledWidth / 2);
-        ctx.rotate(-Math.PI / 2);
-        ctx.fillText(`Width: ${width}`, 0, 0);
-        ctx.restore();
-
-        // Draw grid lines
-        ctx.beginPath();
-        ctx.strokeStyle = '#81c784';
-        ctx.lineWidth = 0.5;
-
-        // Vertical grid lines
-        for (let i = 1; i < length; i++) {
-          ctx.moveTo(x + i * unitSize, y);
-          ctx.lineTo(x + i * unitSize, y + scaledWidth);
+        // Make canvas responsive
+        function resizeCanvas() {
+          const canvas = document.getElementById('rectangleCanvas');
+          canvas.width = canvas.offsetWidth;
+          drawRectangle();
         }
 
-        // Horizontal grid lines
-        for (let i = 1; i < width; i++) {
-          ctx.moveTo(x, y + i * unitSize);
-          ctx.lineTo(x + scaledLength, y + i * unitSize);
-        }
-        ctx.stroke();
-      }
-
-      // Draw rectangle when page loads
-      window.onload = drawRectangle;
-    </script>
-    {% endif %}
+        // Draw rectangle when page loads and when window is resized
+        window.onload = resizeCanvas;
+        window.addEventListener('resize', resizeCanvas);
+      </script>
+      {% endif %}
+    </div>
   </div>
 </body>
 
